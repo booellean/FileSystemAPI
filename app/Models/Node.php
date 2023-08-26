@@ -1,24 +1,16 @@
 <?php
 
 namespace App\Models;
-use App\Models\User;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
-class Node extends Model
+use App\Models\Group;
+use App\Models\User;
+
+abstract class Node extends Model
 {
-	/**
-	 * The table of the model
-	 * @var string
-	 */
-	protected $table = 'nodes';
-
-	/**
-	 * The name of the primary key
-	 * @var string
-	 */
-	protected $primaryKey = 'id';
+    protected $primaryKey = 'id';
 
     protected $with = ['current_user_permissions', 'groups'];
 
@@ -31,17 +23,17 @@ class Node extends Model
 	/**
 	 * The groups of the file or directory
 	 */
-	public function groups()
+	public function groups(): MorphToMany
 	{
-		return $this->belongsToMany('App\Models\Group', 'node_groups', 'node_id', 'group_id');
+		return $this->morphToMany(Group::class, 'groupable');
 	}
 
     /**
 	 * The custom permissions set to users of this file or directory
 	 */
-	public function user_permissions()
+	public function user_permissions(): MorphToMany
 	{
-		return $this->hasMany('App\Models\NodeUserPermission', 'node_id', 'id');
+		return $this->morphToMany(User::class, 'permissions');
 	}
 
     /**
@@ -71,9 +63,6 @@ class Node extends Model
         return self::where('name', '=', $parent_name)->first();
     }
 
-    // public function get_children()
-    // {
-    //     Storage::disk('root')
-    //     return self::where('name', '=', $parent_name)->first();
-    // }
+    abstract public function read_node();
+
 }

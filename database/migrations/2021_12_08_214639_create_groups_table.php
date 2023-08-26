@@ -24,17 +24,10 @@ class CreateGroupsTable extends Migration
 			$table->timestamps();
 		});
 
-		Schema::create('user_groups', function (Blueprint $table) {
-			$table->id();
-			$table->foreignId('group_id')->constrained('groups');
-			$table->foreignId('user_id')->constrained('users');
-			$table->timestamps();
-		});
-
-        Schema::create('node_groups', function (Blueprint $table) {
-			$table->id();
-			$table->foreignId('group_id')->constrained('groups');
-			$table->foreignId('node_id')->constrained('nodes');
+        Schema::create('groupables', function (Blueprint $table) {
+			$table->bigIncrements('id');
+            $table->foreignId('group_id')->constrained('groups');
+            $table->morphs('groupable');
 			$table->timestamps();
 		});
 	}
@@ -46,8 +39,7 @@ class CreateGroupsTable extends Migration
 	 */
 	public function down()
 	{
-		Schema::dropIfExists('node_groups');
-		Schema::dropIfExists('user_groups');
+		Schema::dropIfExists('groupables');
 		Schema::dropIfExists('groups');
 	}
 }

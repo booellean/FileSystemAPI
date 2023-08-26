@@ -5,9 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
+use App\Models\Directory;
+use App\Models\File;
 use App\Models\Group;
-use App\Models\Node;
-use App\Models\NodeUserPermission;
 use App\Models\User;
 
 class Install extends Command
@@ -118,16 +118,18 @@ class Install extends Command
 		return 1;
 	}
 
-    private function recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $parentNode, $path_name, $common_name = 'root') {
+    private function recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $nodeBlueprint, $path_name, $common_name = 'root') {
         $this->comment('');
 
         // Determine if it's a file or directory and create in app
         $type = 'directory';
-        if (isset($parentNode['extension'])) {
+        $is_file = isset($nodeBlueprint['extension']);
+        $node = $is_file ? new File() : new Directory();
 
+        if ($is_file) {
             $type = 'file';
-            $path_name = $path_name.'.'.$parentNode['extension'];
-            $common_name = $common_name.'.'.$parentNode['extension'];
+            $path_name = $path_name.'.'.$nodeBlueprint['extension'];
+            $common_name = $common_name.'.'.$nodeBlueprint['extension'];
 
             Storage::disk('root')->put($path_name, '');
         } else if($path_name != "") {
@@ -136,15 +138,14 @@ class Install extends Command
 
         $this->comment("Creating $common_name $type...");
 
-        $node = new Node();
         $node->name = $path_name;
 
         if ($node->save()) {
-            if (isset($parentNode['groups'])) {
+            if (isset($nodeBlueprint['groups'])) {
                 // Attach Groups to Node...
                 $this->comment("Attaching groups to $common_name...");
 
-                foreach ($parentNode['groups'] as $group_name) {
+                foreach ($nodeBlueprint['groups'] as $group_name) {
                     if (isset($savedGroups[$group_name])) {
                         $group = $savedGroups[$group_name];
                         $node->groups()->attach($group->id);
@@ -154,22 +155,16 @@ class Install extends Command
                 }
             }
 
-            if (isset($parentNode['user_permissions'])) {
-                foreach ($parentNode['user_permissions'] as $user_name => $permission_string) {
+            if (isset($nodeBlueprint['user_permissions'])) {
+                foreach ($nodeBlueprint['user_permissions'] as $user_name => $permission_string) {
                     // Create custom user permission for Node...
                     $this->comment("Creating custom permissions for $common_name...");
 
-                    foreach ($parentNode['user_permissions'] as $user_name => $permission_string) {
+                    foreach ($nodeBlueprint['user_permissions'] as $user_name => $permission_string) {
                         if (isset($savedUsers[$user_name])) {
                             $user = $savedUsers[$user_name];
 
-                            $node_permissions = new NodeUserPermission([
-                                'node_id' => $node->id,
-                                'user_id' => $user->id,
-                                'permissions' => $permission_string,
-                            ]);
-
-                            $node_permissions->save();
+                            $node->user_permissions()->attach($user->id, ['crudx' => $permission_string]);
 
                             $this->comment("Custom permissions for $user_name attached to $common_name...");
 
@@ -182,12 +177,12 @@ class Install extends Command
 
             $this->comment("$common_name was created!");
 
-            if (isset($parentNode['nodes'])) {
+            if (isset($nodeBlueprint['nodes'])) {
                 $this->comment("Creating $common_name directory's children...");
 
-                $bar = $this->output->createProgressBar(count($parentNode['nodes']));
+                $bar = $this->output->createProgressBar(count($nodeBlueprint['nodes']));
 
-                foreach ($parentNode['nodes'] as $node_name => $nodeBP) {
+                foreach ($nodeBlueprint['nodes'] as $node_name => $nodeBP) {
                     $new_path_name = $path_name . '/' . $node_name;
                     $this->recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $nodeBP, $new_path_name, $node_name);
                     $bar->advance();

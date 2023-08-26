@@ -3,6 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
+
+use App\Models\Directory;
+use App\Models\File;
+use App\Models\User;
 
 class Group extends Model
 {
@@ -34,16 +39,24 @@ class Group extends Model
 	/**
 	 * The users that belong to the group
 	 */
-	public function users()
+	public function users(): MorphToMany
 	{
-		return $this->belongsToMany('App\Models\User', 'user_groups', 'group_id', 'user_id');
+        return $this->morphedByMany(User::class, 'groupable');
+    }
+
+    /**
+	 * The files that belong to the group
+	 */
+	public function files(): MorphToMany
+	{
+		return $this->morphedByMany(File::class, 'groupable');
 	}
 
     /**
-	 * The files and directories that belong to the group
+	 * The directories that belong to the group
 	 */
-	public function nodes()
+	public function directories(): MorphToMany
 	{
-		return $this->belongsToMany('App\Models\Node', 'node_groups', 'group_id', 'node_id');
+		return $this->morphedByMany(Directory::class, 'groupable');
 	}
 }

@@ -3,7 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Sanctum\HasApiTokens;
+
+use App\Models\Directory;
+use App\Models\File;
+use App\Models\Group;
 
 class User extends Authenticatable
 {
@@ -48,10 +53,26 @@ class User extends Authenticatable
 	/**
 	 * The groups that belong to the user
 	 */
-	public function groups()
+	public function groups(): MorphToMany
 	{
-		return $this->belongsToMany('App\Models\Group', 'user_groups', 'user_id', 'group_id');
+		return $this->morphToMany(Group::class, 'groupable');
 	}
+
+    /**
+	 * The custom permissions set to files assigned to this user
+	 */
+	public function file_permissions(): MorphToMany
+	{
+        return $this->morphedByMany(File::class, 'permissions');
+    }
+
+    /**
+	 * The custom permissions set to directories assigned to this user
+	 */
+	public function directory_permissions(): MorphToMany
+	{
+        return $this->morphedByMany(Directory::class, 'permissions');
+    }
 
     /**
 	 * --------------------------------------------------------------------------
