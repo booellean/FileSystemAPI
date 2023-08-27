@@ -55,11 +55,6 @@ services:
     phpmyadmin:
         image: phpmyadmin/phpmyadmin:latest
         restart: on-failure
-        # volumes:
-        #     - ./configs/dev/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php:ro
-            # - /tmp
-        # networks:
-        #     db:
         depends_on:
             - db
         ports:
