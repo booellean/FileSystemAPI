@@ -20,14 +20,18 @@ class File extends NodeModel
 	 * --------------------------------------------------------------------------
 	*/
 
-    public function read_node()
+    public function is_empty(): bool
     {
-        // if ($this->is_directory()) {
+        throw new BadMethodCallException('Files cannot have children and thus are never empty');
+    }
 
-        // } else {
+    protected function delete_from_storage(): bool
+    {
+        if (Storage::disk('root')->delete($this->name)) return true;
 
-        // }
-        // Storage::disk('root')
-        // return self::where('name', '=', $parent_name)->first();
+        $this->errorMessage = 'The file could not be deleted.';
+        $this->errorCode = 502;
+
+        return false;
     }
 }

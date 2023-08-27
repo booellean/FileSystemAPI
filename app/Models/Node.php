@@ -10,9 +10,51 @@ use App\Models\User;
 
 abstract class Node extends Model
 {
+    /**
+     * Custom property to help with error messages
+     * @var string
+     */
+    public $errorMessage = 'An unknown error has occurred.';
+
+    /**
+     * Custom error status code
+     * @var int
+     */
+    public $errorCode = 500;
+
+	/**
+     * The name of the primary key,
+     * @var string
+     */
     protected $primaryKey = 'id';
 
+    /**
+     * The "with" property. Automatically loads these relationships on "get"
+     * @var string[]
+     */
     protected $with = ['current_user_permissions', 'groups'];
+
+    /**
+	 * The "boot" method.
+	 *
+	 * Watches the model's dispatched events.
+	 *
+	 */
+    protected static function boot() {
+        parent::boot();
+
+        // This runs before deleting a file or directory
+        static::deleting( function($node) {
+            if ($node->delete_from_storage()) {
+                $node->groups()->detach($node->groups);
+                $node->user_permissions()->detach($node->user_permissions);
+
+                return true;
+            }
+
+            return false;
+        });
+    }
 
     /**
 	 * --------------------------------------------------------------------------
@@ -63,6 +105,8 @@ abstract class Node extends Model
         return self::where('name', '=', $parent_name)->first();
     }
 
-    abstract public function read_node();
+    abstract public function is_empty(): bool;
+
+    abstract protected function delete_from_storage(): bool;
 
 }

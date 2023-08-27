@@ -2,13 +2,15 @@
 
 namespace App\Policies;
 
-use App\Models\User;
+use App\Models\File;
+use App\Models\Directory;
 use App\Models\Node;
+use App\Models\User;
 
 class NodePolicy
 {
     /**
-	 * Allows super user to access all polices
+	 * Modifies the code to make it easier to check if a user has the associated CRUDX policy
 	 *
 	 * @param  App\Models\User  $user
 	 * @param  string           $policy
@@ -40,8 +42,8 @@ class NodePolicy
 	/**
 	 * Determine whether the user can create a node in this directory
 	 *
-	 * @param  App\Models\User  $user
-	 * @param  App\Models\Node  $node
+	 * @param  App\Models\User      $user
+	 * @param  App\Models\Node      $node
 	 * @return bool
 	 */
 	public function create(User $user, Node $node)

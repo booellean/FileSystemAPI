@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\NodeController;
+use App\Http\Controllers\StorageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,29 +17,41 @@ use App\Http\Controllers\NodeController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 // Gaurded API calls
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('user', function(Request $request) {
+        return $request->user();
+    });
     Route::name('node.')->prefix('node/')->group(function () {
 
-        Route::get('create/{node}', [NodeController::class, 'createNode'])
+        Route::post('create/{node}', [StorageController::class, 'createNode'])
             ->name('create')->middleware('can:create,node');
 
-        Route::get('read/{node}', [NodeController::class, 'readNode'])
-            ->name('read')->middleware('can:read,node');
+        Route::get('read/file/{node}', [StorageController::class, 'readFile'])
+            ->name('file.read')->middleware('can:read,node');
 
-        Route::get('update/{node}', [NodeController::class, 'updateNode'])
-            ->name('update')->middleware('can:update,node');
+        Route::get('read/directory/{node}', [StorageController::class, 'readDirectory'])
+            ->name('directory.read')->middleware('can:read,node');
 
-        Route::get('delete/{node}', [NodeController::class, 'deleteNode'])
-            ->name('delete')->middleware('can:delete,node');
+        Route::get('update/file/{node}/{permissions}', [StorageController::class, 'updateFile'])
+            ->name('file.update')->middleware('can:update,node');
 
-        Route::get('execute/{node}', [NodeController::class, 'executeNode'])
+        Route::get('update/directory/{node}/{permissions}', [StorageController::class, 'updateDirectory'])
+            ->name('directory.update')->middleware('can:update,node');
+
+        Route::get('delete/file/{node}', [StorageController::class, 'deleteFile'])
+            ->name('file.delete')->middleware('can:delete,node');
+
+        Route::get('delete/directory/{node}', [StorageController::class, 'deleteDirectory'])
+            ->name('directory.delete')->middleware('can:delete,node');
+
+        Route::get('execute/{node}', [StorageController::class, 'executeFile'])
             ->name('execute')->middleware('can:execute,node');
 
+    });
+
+    Route::name('auth.')->prefix('auth')->group(function () {
+		Route::get('logout', [LoginController::class, 'logout'])->name('logout');
     });
 });
 

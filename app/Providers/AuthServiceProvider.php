@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Policies\NodePolicy;
+use App\Models\Node;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
