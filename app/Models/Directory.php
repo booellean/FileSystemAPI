@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Storage;
 
 class Directory extends NodeModel
 {
+    /**
+     * Custom node typing
+     * @var int
+     */
+    public $nodeType = 'directory';
+
 	/**
 	 * The table of the model
 	 * @var string
@@ -22,14 +28,7 @@ class Directory extends NodeModel
 
     public function is_empty(): bool
     {
-        return false;
-        // if ($this->is_directory()) {
-
-        // } else {
-
-        // }
-        // Storage::disk('root')
-        // return self::where('name', '=', $parent_name)->first();
+        return (empty((Storage::disk('root')->files($this->name))) && empty(Storage::disk('root')->directories($this->name)));
     }
 
     protected function delete_from_storage(): bool

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
+use App\Models\Directory;
 use App\Models\Group;
 use App\Models\User;
 
@@ -21,6 +22,12 @@ abstract class Node extends Model
      * @var int
      */
     public $errorCode = 500;
+
+    /**
+     * Custom node typing
+     * @var int
+     */
+    public $nodeType = 'node';
 
 	/**
      * The name of the primary key,
@@ -75,7 +82,7 @@ abstract class Node extends Model
 	 */
 	public function user_permissions(): MorphToMany
 	{
-		return $this->morphToMany(User::class, 'permissions');
+		return $this->morphToMany(User::class, 'permissions')->withPivot('crudx');
 	}
 
     /**
@@ -84,7 +91,7 @@ abstract class Node extends Model
 	public function current_user_permissions()
 	{
         $user = request()->user();
-		return $this->user_permissions()->where('user_id', '=', ($user != null ? $user->id : '0'));
+		return $this->user_permissions()->where('user_id', '=', ($user != null ? $user->id : '0'))->withPivot('crudx');
 	}
 
     /**
@@ -93,16 +100,28 @@ abstract class Node extends Model
 	 * --------------------------------------------------------------------------
 	*/
 
+    public function get_item_name(): string
+    {
+        $directoryParts = explode('/', $this->name);
+        return array_pop($directoryParts);
+    }
+
     public function get_parent()
     {
         // TODO: Do we want the root parent to be the parent?
+        // Or throw an exception?
         // if ($this->name == '') return null;
 
         $directoryParts = explode('/', $this->name);
         array_pop($directoryParts);
         $parent_name = implode('/', $directoryParts);
 
-        return self::where('name', '=', $parent_name)->first();
+        return Directory::where('name', '=', $parent_name)->first();
+    }
+
+    public function already_exists(string $location): bool
+    {
+        return !!self::where('name', '=', $location)->first();
     }
 
     abstract public function is_empty(): bool;

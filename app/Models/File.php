@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Storage;
 
 class File extends NodeModel
 {
+    /**
+     * Custom node typing
+     * @var int
+     */
+    public $nodeType = 'file';
+
 	/**
 	 * The table of the model
 	 * @var string
@@ -22,7 +28,7 @@ class File extends NodeModel
 
     public function is_empty(): bool
     {
-        throw new BadMethodCallException('Files cannot have children and thus are never empty');
+        throw new BadMethodCallException('Files cannot have children and thus are never empty.');
     }
 
     protected function delete_from_storage(): bool

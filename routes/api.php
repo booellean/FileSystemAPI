@@ -23,7 +23,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         return $request->user();
     });
     Route::name('node.')->prefix('node/')->group(function () {
-
+        // CRUDX
         Route::post('create/{node}', [StorageController::class, 'createNode'])
             ->name('create')->middleware('can:create,node');
 
@@ -33,11 +33,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('read/directory/{node}', [StorageController::class, 'readDirectory'])
             ->name('directory.read')->middleware('can:read,node');
 
-        Route::get('update/file/{node}/{permissions}', [StorageController::class, 'updateFile'])
-            ->name('file.update')->middleware('can:update,node');
+        Route::get('update/file/{node}/{permissions}/{affectedUser?}', [StorageController::class, 'updateFile'])
+            ->name('file.update')->middleware('can:update,node,permissions,affectedUser');
 
-        Route::get('update/directory/{node}/{permissions}', [StorageController::class, 'updateDirectory'])
-            ->name('directory.update')->middleware('can:update,node');
+        Route::get('update/directory/{node}/{permissions}/{affectedUser?}', [StorageController::class, 'updateDirectory'])
+            ->name('directory.update')->middleware('can:update,node,permissions,affectedUser');
 
         Route::get('delete/file/{node}', [StorageController::class, 'deleteFile'])
             ->name('file.delete')->middleware('can:delete,node');
@@ -48,6 +48,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('execute/{node}', [StorageController::class, 'executeFile'])
             ->name('execute')->middleware('can:execute,node');
 
+        // OTHER
+        Route::get('mount', [StorageController::class, 'mount'])
+            ->name('mount');
+
+        Route::get('move/{destination}/file/{child}', [StorageController::class, 'moveFile'])
+            ->name('file.move')->middleware('can:move,destination,child');
+
+        Route::get('move/{destination}/directory/{child}', [StorageController::class, 'moveDirectory'])
+            ->name('directory.move')->middleware('can:move,destination,child');
     });
 
     Route::name('auth.')->prefix('auth')->group(function () {

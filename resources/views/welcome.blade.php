@@ -54,15 +54,30 @@
                 <input type="text" name="nodename" value="firstValue"/>
             </div>
 
+            <div class="field">
+                <label>Node Destination</label>
+                <input type="text" name="nodedestination" value=""/>
+            </div>
+
+            <div class="field">
+                <label>Node Moved</label>
+                <input type="text" name="nodemoved" value=""/>
+            </div>
+
             <button onclick="authorize()" type="button" id="authbutton">LOGIN</button>
+            <button onclick="mount()" type="button">MOUNT</button>
             <button onclick="createNode()" type="button">CREATE NODE</button>
             <button onclick="readNode('file')" type="button">READ FILE</button>
             <button onclick="readNode('directory')" type="button">READ DIRECTORY</button>
-            <button onclick="updateNode()" type="button">UPDATE NODE</button>
+            <button onclick="updateNode('file')" type="button">UPDATE FILE</button>
+            <button onclick="updateNode('directory')" type="button">UPDATE DIRECTORY</button>
             <button onclick="deleteNode('file')" type="button">DELETE FILE</button>
             <button onclick="deleteNode('directory')" type="button">DELETE DIRECTORY</button>
             <button onclick="executeNode()" type="button">EXECUTE NODE</button>
+            <button onclick="moveNode('file')" type="button">MOVE FILE</button>
+            <button onclick="moveNode('directory')" type="button">MOVE DIRECTORY</button>
             <button onclick="getSessionUser()" type="button">GET USER</button>
+
             <script src="/build/assets/app-0d91dc04.js"></script>
             <script src="/build/assets/app-4ed993c7.js"></script>
             <script >
@@ -87,6 +102,14 @@
 
                 function getPassword() {
                     return document.querySelector('[name="password"]').value;
+                }
+
+                function getDestination() {
+                    return document.querySelector('[name="nodedestination"]').value;
+                }
+
+                function getMoved() {
+                    return document.querySelector('[name="nodemoved"]').value;
                 }
 
                 function setToken()
@@ -133,12 +156,24 @@
 
                 }
 
+                function mount() {
+                    window.axios.get(`/api/node/mount`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                        .then( (res) => {
+                            console.log(res);
+                        })
+                        .catch( (error) => {
+                            console.log(error);
+                        })
+                }
+
                 function createNode() {
                     let id = getId();
                     let name = getName();
 
                     window.axios.post(`/api/node/create/${id}`,
-                        { name: name },
+                        { name: name, data: 'test' },
                         { headers: { Authorization: `Bearer ${token}` }},
                     )
                         .then( (res) => {
@@ -163,11 +198,11 @@
                         })
                 }
 
-                function updateNode() {
+                function updateNode(type) {
                     let id = getId();
                     let perms = getPerms();
 
-                    window.axios.get(`/api/node/update/${id}/${perms}`, {
+                    window.axios.get(`/api/node/update/${type}/${id}/${perms}/2`, {
                         headers: { Authorization: `Bearer ${token}` }
                     })
                         .then( (res) => {
@@ -196,6 +231,21 @@
                     let id = getId();
 
                     window.axios.get(`/api/node/execute/${id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                        .then( (res) => {
+                            console.log(res);
+                        })
+                        .catch( (error) => {
+                            console.log(error);
+                        })
+                }
+
+                function moveNode(type) {
+                    let destinationId = getDestination();
+                    let movedId = getMoved();
+
+                    window.axios.get(`/api/node/move/${destinationId}/${type}/${movedId}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     })
                         .then( (res) => {
