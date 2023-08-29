@@ -9,10 +9,17 @@ use Illuminate\Support\Facades\Storage;
 class File extends NodeModel
 {
     /**
-     * Custom node typing
-     * @var int
+     * Custom property for node typing
+     * @var string
      */
     public $nodeType = 'file';
+
+    /**
+     * Custom property for held data.
+     * Used for saving new nodes
+     * @var string
+     */
+    public $data = '';
 
 	/**
 	 * The table of the model
@@ -31,13 +38,29 @@ class File extends NodeModel
         throw new BadMethodCallException('Files cannot have children and thus are never empty.');
     }
 
+    public function get_name(): string
+    {
+        return $this->name . '.' . $this->extension;
+    }
+
+    protected function put_in_storage(): bool
+    {
+        return Storage::disk($this->disk)->put($this->get_path_name(), $this->data);
+    }
+
     protected function delete_from_storage(): bool
     {
-        if (Storage::disk('root')->delete($this->name)) return true;
+        if (Storage::disk($this->disk)->delete($this->get_path_name())) return true;
 
         $this->errorMessage = 'The file could not be deleted.';
         $this->errorCode = 502;
 
         return false;
+    }
+
+    public function update_location(string $destination)
+    {
+        // $this->name = $destination . '/' . $this->get_item_name();
+        // $this->save();
     }
 }

@@ -13,7 +13,9 @@ class CreateFilesTable extends Migration
     {
         Schema::create('files', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name')->unique(); // document path, ex. /root/fake.png
+            $table->string('name');
+            $table->string('extension');
+            $table->bigInteger('parent_id');
             $table->timestamps();
         });
     }

@@ -9,8 +9,16 @@ use App\Models\Directory;
 use App\Models\Group;
 use App\Models\User;
 
+use Illuminate\Support\Facades\Storage;
+
 abstract class Node extends Model
 {
+    /**
+     * Custom property to indicate disk storage name
+     * @var string
+     */
+    public $disk = 'root';
+
     /**
      * Custom property to help with error messages
      * @var string
@@ -52,14 +60,23 @@ abstract class Node extends Model
 
         // This runs before deleting a file or directory
         static::deleting( function($node) {
-            if ($node->delete_from_storage()) {
-                $node->groups()->detach($node->groups);
-                $node->user_permissions()->detach($node->user_permissions);
+            if (!$node->delete_from_storage()) return false;
 
-                return true;
-            }
+            $node->groups()->detach($node->groups);
+            $node->user_permissions()->detach($node->user_permissions);
 
-            return false;
+            return true;
+        });
+
+        static::saving( function($node) {
+            // If this is a brand new node
+            if (!$node->id) return $node->put_in_storage();
+
+            return true;
+        });
+
+        static::updating( function($node) {
+            return $node->check_for_parent_changes_and_update();
         });
     }
 
@@ -100,32 +117,55 @@ abstract class Node extends Model
 	 * --------------------------------------------------------------------------
 	*/
 
-    public function get_item_name(): string
-    {
-        $directoryParts = explode('/', $this->name);
-        return array_pop($directoryParts);
-    }
-
     public function get_parent()
     {
-        // TODO: Do we want the root parent to be the parent?
-        // Or throw an exception?
-        // if ($this->name == '') return null;
-
-        $directoryParts = explode('/', $this->name);
-        array_pop($directoryParts);
-        $parent_name = implode('/', $directoryParts);
-
-        return Directory::where('name', '=', $parent_name)->first();
+        return Directory::find($this->parent_id);
     }
 
-    public function already_exists(string $location): bool
+    public function get_path_name(): string
     {
-        return !!self::where('name', '=', $location)->first();
+        $parent = $this->get_parent();
+        $path_name = $this->get_name();
+
+        while ($parent != null) {
+            $path_name = $parent->name . '/' . $path_name;
+            $parent = $parent->get_parent();
+        }
+
+        return $path_name;
     }
+
+    public function already_exists(int $dest_parent_id): bool
+    {
+        return !!self::where([
+            ['name', '=', $this->name],
+            ['parent_id', '=', $dest_parent_id],
+        ])->first();
+    }
+
+    protected function check_for_parent_changes_and_update(): bool
+    {
+        // ov = original values, nv = new values
+        $ov = $this->getOriginal();
+        $nv = $this->getAttributes();
+
+        if ($ov['parent_id'] != $nv['parent_id']) {
+            $oldDirectory = Directory::findOrFail($ov['parent_id']);
+            $old_location = $oldDirectory->get_path_name() . '/' . $this->get_name();
+            $new_location = $this->get_path_name();
+
+            return Storage::disk($this->disk)->move($old_location, $new_location);
+        }
+
+        // Otherwise they are not changing storage location, return true
+        return true;
+    }
+
+    abstract public function get_name(): string;
 
     abstract public function is_empty(): bool;
 
     abstract protected function delete_from_storage(): bool;
 
+    abstract protected function put_in_storage(): bool;
 }

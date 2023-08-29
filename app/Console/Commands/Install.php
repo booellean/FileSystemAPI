@@ -106,10 +106,26 @@ class Install extends Command
         // Install Nodes
         $this->comment('Loading default files and directories...');
 
-        $rootNode = config('install.root');
-        $path_name = '';
+        $rootNodeBP = config('install.root');
 
-        $this->recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $rootNode, $path_name);
+        // Create root directory first
+        // $rootDirectory = new Directory();
+        // $rootDirectory->name = '';
+        // $rootDirectory->parent_id = 0;
+        // $rootDirectory->save();
+
+        $this->comment("Creating root directory and its children...");
+
+        $this->recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $rootNodeBP, '', 0);
+
+        // $bar = $this->output->createProgressBar(count($rootNodeBP['nodes']));
+
+        // foreach ($rootNodeBP['nodes'] as $node_name => $nodeBP) {
+        //     $this->recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $nodeBP, $node_name, $rootDirectory);
+        //     $bar->advance();
+        // }
+
+        // $bar->finish();
 
 		$this->comment('');
 
@@ -118,28 +134,19 @@ class Install extends Command
 		return 1;
 	}
 
-    private function recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $nodeBlueprint, $path_name, $common_name = 'root') {
+    private function recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $nodeBlueprint, $common_name, $parent_id) {
         $this->comment('');
 
-        // Determine if it's a file or directory and create in app
-        $type = 'directory';
+        // Determine if it's a file or directory and create a node
         $is_file = isset($nodeBlueprint['extension']);
         $node = $is_file ? new File() : new Directory();
+        $node->name = $common_name;
+        $node->parent_id = $parent_id;
+        if ($is_file) $node->extension = $nodeBlueprint['extension'];
 
-        if ($is_file) {
-            $type = 'file';
-            $path_name = $path_name.'.'.$nodeBlueprint['extension'];
-            $common_name = $common_name.'.'.$nodeBlueprint['extension'];
+        $this->comment("Creating $node->nodeType $common_name ...");
 
-            Storage::disk('root')->put($path_name, '');
-        } else if($path_name != "") {
-            Storage::disk('root')->makeDirectory($path_name);
-        }
-
-        $this->comment("Creating $common_name $type...");
-
-        $node->name = $path_name;
-
+        // Save, which will automatically put in storage
         if ($node->save()) {
             if (isset($nodeBlueprint['groups'])) {
                 // Attach Groups to Node...
@@ -175,21 +182,20 @@ class Install extends Command
                 }
             }
 
-            $this->comment("$common_name was created!");
+            $this->comment( ucfirst($node->nodeType) . " $common_name was created!" );
 
-            if (isset($nodeBlueprint['nodes'])) {
+            if (isset($nodeBlueprint['nodes']) && !$is_file) {
                 $this->comment("Creating $common_name directory's children...");
 
                 $bar = $this->output->createProgressBar(count($nodeBlueprint['nodes']));
 
                 foreach ($nodeBlueprint['nodes'] as $node_name => $nodeBP) {
-                    $new_path_name = $path_name . '/' . $node_name;
-                    $this->recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $nodeBP, $new_path_name, $node_name);
+                    $node_id = $node->id;
+                    $this->recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $nodeBP, $node_name, $node_id);
                     $bar->advance();
                 }
 
 		        $bar->finish();
-
             }
         } else {
             // TODO: error handle
@@ -202,12 +208,25 @@ class Install extends Command
         $this->comment('Removing old test files...');
 
         $directories = Storage::disk('root')->directories();
+        $files = Storage::disk('root')->files();
 
         if (count($directories) > 0) {
             $bar = $this->output->createProgressBar(count($directories));
 
             foreach ($directories as $directory) {
                 Storage::disk('root')->deleteDirectory($directory);
+
+                $bar->advance();
+            }
+
+            $bar->finish();
+        }
+
+        if (count($files) > 0) {
+            $bar = $this->output->createProgressBar(count($files));
+
+            foreach ($files as $file) {
+                Storage::disk('root')->delete($file);
 
                 $bar->advance();
             }

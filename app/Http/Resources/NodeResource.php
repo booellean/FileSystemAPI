@@ -19,6 +19,7 @@ class NodeResource extends JsonResource
 		return [
 			'id' => $this->id,
 			'name' => $this->name,
+            'extension' => $this->when($this->extension, $this->extension),
 			'groups' => $this->groups()->get()->pluck('id')->toArray(),
             'user_permissions' => $this->user_permissions()->get()->mapWithKeys(function (User $user, int $key) {
                 return [$user->id => $user->pivot->crudx];

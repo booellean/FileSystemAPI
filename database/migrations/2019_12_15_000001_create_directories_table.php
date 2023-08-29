@@ -13,7 +13,8 @@ class CreateDirectoriesTable extends Migration
     {
         Schema::create('directories', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name')->unique(); // document path, ex. /root/fake
+            $table->string('name');
+            $table->bigInteger('parent_id');
             $table->timestamps();
         });
     }

@@ -55,15 +55,15 @@ class NodePolicy
 	 *
 	 * @param  App\Models\User  $user
 	 * @param  App\Models\Node  $node
-	 * @param  int              $user_id
+	 * @param  int              $affected_user_id
 	 * @return bool
 	 */
-	public function update(User $user, Node $node, string $permissions, int $user_id = null)
+	public function update(User $user, Node $node, string $permissions, int $affected_user_id = null)
 	{
 		return (
             $user->permissions[2] == "1" &&
             $this->permissionsAcceptable($permissions) &&
-            $this->userCanUpdateUser($user, $node, $user_id)
+            $this->userCanUpdateUser($user, $node, $affected_user_id)
         );
 	}
 

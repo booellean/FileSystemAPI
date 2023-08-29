@@ -22,28 +22,26 @@ class StorageController extends Controller
     public function createNode(NodeCreateRequest $request, Directory $node)
 	{
         $params = $request->input();
-        $path_name = $node->name . '/' . $params['name'];
+        $is_file = isset($params['data']) && isset($params['extension']) ? true : false;
 
 		$user = $request->user();
         $userGroups = $user->groups()->get()->pluck('id')->toArray();
         $userPerms = $node->current_user_permissions()->first();
 
         // Our unassigned node
-        $newNode;
+        $newNode = $is_file ? new File() : new Directory();
+        $newNode->name = $params['name'];
 
-        try {
-            // Check if this is a file with data attached
-            if (isset($params['data'])) {
-                $newNode = new File();
-                Storage::disk('root')->put($path_name, $params['data']);
-            } else {
-                $newNode = new Directory();
-                Storage::disk('root')->makeDirectory($path_name);
-            }
+        if ($is_file) {
+            $newNode->extension = $params['extension'];
+            // TODO: actually save data
+            $newNode->data = $params['data'];
+        }
 
-            // Create new node
-            $newNode->name = $path_name;
-            $newNode->save();
+        $newNode->parent_id = $node->id;
+
+        // Create new node
+        if ($newNode->save()) {
 
             // Assign groups of current user
             if (!empty($userGroups)) $newNode->groups()->attach($userGroups);
@@ -52,15 +50,14 @@ class StorageController extends Controller
 
             // Alert frontend user that the node is created
             return response()->json([
-                'message' => "$newNode->name was successfully created."
+                'message' => ucfirst($newNode->nodeType) . " $newNode->name was successfully created."
             ], 200);
 
-        } catch(\Exception $error) {
-            return response()->json([
-                'message' => "$error" // for debugging
-                // 'message' => "An unknown error occurred."
-            ], 500);
         }
+
+        return response()->json([
+            'message' => "An unknown error occurred."
+        ], 500);
 	}
 
 	public function readFile(Request $request, File $node)
@@ -75,16 +72,6 @@ class StorageController extends Controller
         return response()->json(new MountDirectoryResource($node), 200);
 	}
 
-    public function updateFile(Request $request, File $node, string $permissions, int $user_id = null)
-	{
-        return $this->updateNode($request, $node, $permissions, $user_id);
-	}
-
-    public function updateDirectory(Request $request, Directory $node, string $permissions, int $user_id = null)
-	{
-        return $this->updateNode($request, $node, $permissions, $user_id);
-	}
-
     private function updateNode(Request $request, Node $node, string $permissions, int $user_id) {
         $affectedUser = $user_id == null ? $request->user() : User::findOrFail($user_id);
 
@@ -96,16 +83,6 @@ class StorageController extends Controller
             'message' => "Permissions for $affectedUser->name have been updated for $node->name as $permissions."
         ], 200);
     }
-
-    public function deleteFile(File $node)
-	{
-        return $this->deleteNode($node);
-	}
-
-    public function deleteDirectory(Directory $node)
-	{
-        return $this->deleteNode($node);
-	}
 
     private function deleteNode(Node $node) {
         if ($node->delete()) {
@@ -133,34 +110,21 @@ class StorageController extends Controller
         return response()->json(["node" => new NodeResource($rootNode)], 200);
 	}
 
-    public function moveDirectory(Directory $destination, Directory $child)
-    {
-        return $this->moveNode($destination, $child);
-    }
-
-    public function moveFile(Directory $destination, File $child)
-    {
-        return $this->moveNode($destination, $child);
-    }
-
     private function moveNode(Directory $destination, Node $child)
     {
-        $nodeName = $child->get_item_name();
-        $newChildName = $destination->name . '/' . $nodeName;
-
-        if ($child->already_exists($newChildName)) {
+        if ($child->already_exists($destination->id)) {
             return response()->json([
                 'message' => "There's already a $child->nodeType named $nodeName at $destination->name. Please rename the $child->nodeType first."
             ], 405);
         }
 
-        // TODO: directory children and parents have to be changed as well
-        if (Storage::disk('root')->move($child->name, $newChildName)) {
-            $child->name = $newChildName;
-            $child->save();
+        // Update parent location
+        $child->parent_id = $destination->id;
 
+        // If child saves, storage was moved successfully
+        if ($child->save()) {
             return response()->json([
-                'message' => "The $child->nodeType $child->name was successfully moved!"
+                'message' => "The $child->nodeType " . $child->get_name() ." was successfully moved!"
             ], 200);
         }
 
