@@ -72,7 +72,7 @@ class StorageController extends Controller
         return response()->json(new MountDirectoryResource($node), 200);
 	}
 
-    private function updateNode(Request $request, Node $node, string $permissions, int $user_id) {
+    public function updateNode(Request $request, Node $node, string $permissions, int $user_id) {
         $affectedUser = $user_id == null ? $request->user() : User::findOrFail($user_id);
 
         // Detach if one is available
@@ -84,7 +84,7 @@ class StorageController extends Controller
         ], 200);
     }
 
-    private function deleteNode(Node $node) {
+    public function deleteNode(Node $node) {
         if ($node->delete()) {
             return response()->json([
                 'message' => "$node->name was successfully deleted."
@@ -110,7 +110,7 @@ class StorageController extends Controller
         return response()->json(["node" => new NodeResource($rootNode)], 200);
 	}
 
-    private function moveNode(Directory $destination, Node $child)
+    public function moveNode(Directory $destination, Node $child)
     {
         if ($child->already_exists($destination->id)) {
             return response()->json([

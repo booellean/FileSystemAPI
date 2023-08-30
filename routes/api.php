@@ -27,9 +27,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         return $request->user();
     });
 
-    $controllerInsance = new StorageController();
-
     Route::name('node.')->prefix('node/')->group(function () {
+        $controllerInstance = new StorageController();
+
         // CRUDX
         Route::post('create/{node}', [StorageController::class, 'createNode'])
             ->name('create')->middleware('can:create,node');
@@ -41,23 +41,23 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             ->name('directory.read')->middleware('can:read,node');
 
         Route::get('update/file/{node}/{permissions}/{affected_user_id?}',
-            function(Request $request, File $node, string $permissions, int $affected_user_id = null) {
-                return $controllerInsance->updateNode($request, $node, $permissions, $affected_user_id);
+            function(Request $request, File $node, string $permissions, int $affected_user_id = null) use ($controllerInstance) {
+                return $controllerInstance->updateNode($request, $node, $permissions, $affected_user_id);
             })
             ->name('file.update')->middleware('can:update,node,permissions,affected_user_id');
 
         Route::get('update/directory/{node}/{permissions}/{affected_user_id?}',
-            function(Request $request, Directory $node, string $permissions, int $affected_user_id = null) {
-                return $controllerInsance->updateNode($request, $node, $permissions, $affected_user_id);
+            function(Request $request, Directory $node, string $permissions, int $affected_user_id = null) use ($controllerInstance) {
+                return $controllerInstance->updateNode($request, $node, $permissions, $affected_user_id);
             })
             ->name('file.update')->middleware('can:update,node,permissions,affected_user_id');
 
-        Route::get('delete/file/{node}', function(File $node) {
-            return $controllerInsance->deleteNode($node);
+        Route::get('delete/file/{node}', function(File $node) use ($controllerInstance) {
+            return $controllerInstance->deleteNode($node);
         })->name('file.delete')->middleware('can:delete,node');
 
-        Route::get('delete/directory/{node}', function(Directory $node) {
-            return $controllerInsance->deleteNode($node);
+        Route::get('delete/directory/{node}', function(Directory $node) use ($controllerInstance) {
+            return $controllerInstance->deleteNode($node);
         })->name('directory.delete')->middleware('can:delete,node');
 
         Route::get('execute/{node}', [StorageController::class, 'executeFile'])
@@ -67,12 +67,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('mount', [StorageController::class, 'mount'])
             ->name('mount');
 
-        Route::get('move/{destination}/file/{child}', function(Directory $destination, File $node) {
-            return $controllerInsance->moveNode($destination, $node);
+        Route::get('move/{destination}/file/{child}', function(Directory $destination, File $child) use ($controllerInstance) {
+            return $controllerInstance->moveNode($destination, $child);
         })->name('file.move')->middleware('can:move,destination,child');
 
-        Route::get('move/{destination}/directory/{child}', function(Directory $destination, Directory $node) {
-            return $controllerInsance->moveNode($destination, $node);
+        Route::get('move/{destination}/directory/{child}', function(Directory $destination, Directory $child) use ($controllerInstance) {
+            return $controllerInstance->moveNode($destination, $child);
         })->name('directory.move')->middleware('can:move,destination,child');
     });
 

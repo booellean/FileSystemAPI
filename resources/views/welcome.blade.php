@@ -202,7 +202,7 @@
                     let id = getId();
                     let perms = getPerms();
 
-                    window.axios.get(`/api/node/update/${type}/${id}/${perms}/2`, {
+                    window.axios.get(`/api/node/update/${type}/${id}/${perms}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     })
                         .then( (res) => {
