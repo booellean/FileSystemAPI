@@ -108,24 +108,9 @@ class Install extends Command
 
         $rootNodeBP = config('install.root');
 
-        // Create root directory first
-        // $rootDirectory = new Directory();
-        // $rootDirectory->name = '';
-        // $rootDirectory->parent_id = 0;
-        // $rootDirectory->save();
-
         $this->comment("Creating root directory and its children...");
 
         $this->recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $rootNodeBP, '', 0);
-
-        // $bar = $this->output->createProgressBar(count($rootNodeBP['nodes']));
-
-        // foreach ($rootNodeBP['nodes'] as $node_name => $nodeBP) {
-        //     $this->recursiveFileAndDirectoryInstallation($savedGroups, $savedUsers, $nodeBP, $node_name, $rootDirectory);
-        //     $bar->advance();
-        // }
-
-        // $bar->finish();
 
 		$this->comment('');
 
