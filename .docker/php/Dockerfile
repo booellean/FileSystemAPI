@@ -15,17 +15,6 @@ RUN apt-get install -y libicu-dev \
 # pcov
 RUN pecl install pcov && docker-php-ext-enable pcov
 
-# Xdebug
-#RUN pecl install xdebug \
-# && docker-php-ext-enable xdebug \
-# && echo ";zend_extension=xdebug" > /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-
-RUN curl -sL https://deb.nodesource.com/setup_19.x | bash -
-RUN apt-get install -y nodejs
-RUN npm install npm@latest -g
-RUN npm install yarn -g
-RUN npm install -g @vue/cli
-
 WORKDIR /root
 RUN git clone https://github.com/seebi/dircolors-solarized
 
