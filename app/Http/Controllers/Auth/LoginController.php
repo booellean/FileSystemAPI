@@ -17,18 +17,27 @@ class LoginController extends Controller
 
     public function login(Request $request)
 	{
-        // TODO: When the mobile application uses the token to make an API request to your application, it should pass the token in the Authorization header as a Bearer token.
-        // TODO: get device name somehow for token name
-        // dd($request);
-        $device_name = 'test';
-        $user = User::where('name', '=', $request->name)->first();
+        $device_name = 'local';
 
-        // // TODO: check if a password is required for this user and validate
-        // if (! $user || ! Hash::check($request->password, $user->password)) {
-        //     throw ValidationException::withMessages([
-        //         'name' => ['The provided credentials are incorrect.'],
-        //     ]);
-        // }
+        if (!$user = User::where('name', '=', $request->name)->first()) {
+            return response()->json([
+                'message' => 'User was not found.'
+            ], 404);
+        }
+
+        if ($user->password) {
+            if (!$request->password) {
+                return response()->json([
+                    'message' => 'This user requires a password.'
+                ], 405);
+            }
+
+            if (!Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'message' => 'The password was incorret.'
+                ], 405);
+            }
+        }
 
         return $user->createToken($device_name)->plainTextToken;
 	}

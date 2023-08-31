@@ -3,8 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DiskController;
+use App\Http\Controllers\GroupController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\UserController;
 
 use App\Models\Directory;
 use App\Models\File;
@@ -22,10 +24,10 @@ use App\Models\File;
 
 // Gaurded API calls
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    // Debug
-    Route::get('user', function(Request $request) {
-        return $request->user();
-    });
+
+    Route::get('users', [UserController::class, 'getUsers'])->name('user.get');
+
+    Route::get('groups', [GroupController::class, 'getGroups'])->name('group.get');
 
     Route::name('node.')->prefix('node/')->group(function () {
         $controllerInstance = new DiskController();

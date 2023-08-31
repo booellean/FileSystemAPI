@@ -66,6 +66,8 @@
 
             <button onclick="authorize()" type="button" id="authbutton">LOGIN</button>
             <button onclick="mount()" type="button">MOUNT</button>
+            <button onclick="getUsers()" type="button">USERS</button>
+            <button onclick="getGroups()" type="button">GROUPS</button>
             <button onclick="createNode()" type="button">CREATE NODE</button>
             <button onclick="readNode('file')" type="button">READ FILE</button>
             <button onclick="readNode('directory')" type="button">READ DIRECTORY</button>
@@ -156,8 +158,34 @@
 
                 }
 
+
                 function mount() {
                     window.axios.get(`/api/node/mount`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                        .then( (res) => {
+                            console.log(res);
+                        })
+                        .catch( (error) => {
+                            console.log(error);
+                        })
+                }
+
+
+                function getUsers() {
+                    window.axios.get(`/api/users`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                        .then( (res) => {
+                            console.log(res);
+                        })
+                        .catch( (error) => {
+                            console.log(error);
+                        })
+                }
+
+                function getGroups() {
+                    window.axios.get(`/api/groups`, {
                         headers: { Authorization: `Bearer ${token}` }
                     })
                         .then( (res) => {
