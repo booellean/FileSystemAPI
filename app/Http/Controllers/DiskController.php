@@ -5,10 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
-use Illuminate\Support\Facades\Storage;
-
 use App\Models\Directory;
-use App\Models\File;
 use App\Models\Node;
 use App\Models\User;
 
@@ -17,7 +14,7 @@ use App\Http\Requests\NodeCreateRequest;
 use App\Http\Resources\MountDirectoryResource;
 use App\Http\Resources\NodeResource;
 
-class StorageController extends Controller
+class DiskController extends Controller
 {
     public function createNode(NodeCreateRequest $request, Directory $node)
 	{

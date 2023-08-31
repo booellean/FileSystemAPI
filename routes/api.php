@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\StorageController;
+use App\Http\Controllers\DiskController;
 
 use App\Models\Directory;
 use App\Models\File;
@@ -28,16 +28,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::name('node.')->prefix('node/')->group(function () {
-        $controllerInstance = new StorageController();
+        $controllerInstance = new DiskController();
 
         // CRUDX
-        Route::post('create/{node}', [StorageController::class, 'createNode'])
+        Route::post('create/{node}', [DiskController::class, 'createNode'])
             ->name('create')->middleware('can:create,node');
 
-        Route::get('read/file/{node}', [StorageController::class, 'readFile'])
+        Route::get('read/file/{node}', [DiskController::class, 'readFile'])
             ->name('file.read')->middleware('can:read,node');
 
-        Route::get('read/directory/{node}', [StorageController::class, 'readDirectory'])
+        Route::get('read/directory/{node}', [DiskController::class, 'readDirectory'])
             ->name('directory.read')->middleware('can:read,node');
 
         Route::get('update/file/{node}/{permissions}/{affected_user_id?}',
@@ -60,11 +60,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             return $controllerInstance->deleteNode($node);
         })->name('directory.delete')->middleware('can:delete,node');
 
-        Route::get('execute/{node}', [StorageController::class, 'executeFile'])
+        Route::get('execute/{node}', [DiskController::class, 'executeFile'])
             ->name('execute')->middleware('can:execute,node');
 
         // OTHER
-        Route::get('mount', [StorageController::class, 'mount'])
+        Route::get('mount', [DiskController::class, 'mount'])
             ->name('mount');
 
         Route::get('move/{destination}/file/{child}', function(Directory $destination, File $child) use ($controllerInstance) {
