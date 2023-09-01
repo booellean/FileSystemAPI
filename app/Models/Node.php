@@ -70,7 +70,7 @@ abstract class Node extends Model
 
         static::saving( function($node) {
             // If this is a brand new node
-            if (!$node->id) return $node->put_in_storage();
+            if (!$node->id) return !$node->already_exists($node->parent_id) && $node->put_in_storage();
 
             return true;
         });

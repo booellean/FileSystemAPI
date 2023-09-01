@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
 use App\Models\Directory;
+use App\Models\File;
 use App\Models\Node;
 use App\Models\User;
 

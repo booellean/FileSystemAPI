@@ -31,6 +31,7 @@ RUN composer config --global process-timeout 3600
 
 EXPOSE 5173
 WORKDIR /var/www
+RUN mkdir storage/ bootstrap/
 RUN chown -R www-data:www-data storage/ bootstrap/
 
 RUN composer global require "laravel/installer"
