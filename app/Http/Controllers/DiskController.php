@@ -70,7 +70,7 @@ class DiskController extends Controller
         return response()->json(new MountDirectoryResource($node), 200);
 	}
 
-    public function updateNode(Request $request, Node $node, string $permissions, int $user_id) {
+    public function updateNode(Request $request, Node $node, string $permissions, int $user_id = null) {
         $affectedUser = $user_id == null ? $request->user() : User::findOrFail($user_id);
 
         // Detach if one is available
