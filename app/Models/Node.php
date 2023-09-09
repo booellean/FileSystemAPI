@@ -76,7 +76,7 @@ abstract class Node extends Model
         });
 
         static::updating( function($node) {
-            return $node->check_for_parent_changes_and_update();
+            return !$node->already_exists($node->parent_id) && $node->check_for_parent_changes_and_update();
         });
     }
 
@@ -137,10 +137,17 @@ abstract class Node extends Model
 
     public function already_exists(int $dest_parent_id): bool
     {
-        return !!self::where([
+        $exists = !!self::where([
             ['name', '=', $this->name],
             ['parent_id', '=', $dest_parent_id],
         ])->first();
+
+        if ($exists) {
+            $this->errorMessage = 'The '.$this->nodeType.' of name '.$this->get_name().' already exists at that location.';
+            $this->errorCode = 405;
+        }
+
+        return $exists;
     }
 
     protected function check_for_parent_changes_and_update(): bool

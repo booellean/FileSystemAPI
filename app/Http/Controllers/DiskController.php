@@ -53,9 +53,10 @@ class DiskController extends Controller
 
         }
 
+        // Otherwise there was an error
         return response()->json([
-            'message' => "An unknown error occurred."
-        ], 500);
+            'message' => $node->errorMessage
+        ], $node->errorCode);
 	}
 
 	public function readFile(Request $request, File $node)
@@ -65,7 +66,7 @@ class DiskController extends Controller
         ], 200);
 	}
 
-	public function readDirectory(Request $request, Directory $node)
+	public function readDirectory(Directory $node)
 	{
         return response()->json(new MountDirectoryResource($node), 200);
 	}
@@ -101,7 +102,7 @@ class DiskController extends Controller
         ], 200);
 	}
 
-    public function mount(Request $request)
+    public function mount()
 	{
         $rootNode = Directory::where('name', '=', '')->first();
 
@@ -110,12 +111,6 @@ class DiskController extends Controller
 
     public function moveNode(Directory $destination, Node $child)
     {
-        if ($child->already_exists($destination->id)) {
-            return response()->json([
-                'message' => "There's already a $child->nodeType named $nodeName at $destination->name. Please rename the $child->nodeType first."
-            ], 405);
-        }
-
         // Update parent location
         $child->parent_id = $destination->id;
 
@@ -126,8 +121,9 @@ class DiskController extends Controller
             ], 200);
         }
 
+        // Otherwise an error occurred, probably already existed
         return response()->json([
-            'message' => "An unknown error occurred. The $child->nodeType could not be moved."
-        ], 500);
+            'message' => $child->errorMessage
+        ], $child->errorCode);
     }
 }

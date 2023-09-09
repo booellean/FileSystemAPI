@@ -57,10 +57,4 @@ class File extends NodeModel
 
         return false;
     }
-
-    public function update_location(string $destination)
-    {
-        // $this->name = $destination . '/' . $this->get_item_name();
-        // $this->save();
-    }
 }

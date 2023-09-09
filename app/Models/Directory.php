@@ -68,15 +68,4 @@ class Directory extends NodeModel
     {
         return File::where('parent_id', '=', $this->id)->get();
     }
-
-    public function update_location(string $destination)
-    {
-        // $this->name = $destination . '/' . $this->get_item_name();
-        // $this->save();
-    }
-
-    private function update_children_names(string $destination)
-    {
-
-    }
 }
