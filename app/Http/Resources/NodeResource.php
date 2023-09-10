@@ -16,14 +16,15 @@ class NodeResource extends JsonResource
 	 */
 	public function toArray($request)
 	{
+		$permissions = $this->user_permissions()->get();
 		return [
 			'id' => $this->id,
 			'name' => $this->name,
-            'extension' => $this->when($this->extension, $this->extension),
-			'groups' => $this->groups()->get()->pluck('id')->toArray(),
-            'user_permissions' => $this->user_permissions()->get()->mapWithKeys(function (User $user, int $key) {
+			'groups' => GroupResource::collection($this->groups()->get()),
+            'userPermissions' => $permissions->count() > 0 ? $permissions->mapWithKeys(function (User $user, int $key) {
                 return [$user->id => $user->pivot->crudx];
-            })
+            }) : null,
+            'extension' => $this->when($this->extension, $this->extension),
 		];
 	}
 }

@@ -18,7 +18,7 @@ class GroupResource extends JsonResource
 			'id' => $this->id,
 			'name' => $this->name,
             'weight' => $this->weight,
-            'permissions' => $this->permissions
+            'permissionString' => $this->permissions
 		];
 	}
 }

@@ -13,8 +13,6 @@ class GroupController extends Controller
 {
     public function getGroups()
     {
-        return response()->json([
-            'groups' => GroupResource::collection(Group::all())
-        ], 200);
+        return response()->json(GroupResource::collection(Group::all()), 200);
     }
 }

@@ -112,7 +112,7 @@ class NodePolicy
         // This means user can create in destination directory,
         // user can delete in former parent directory
         // and user can update child node
-		return $destinationPermissions[0] == "1" && $parentPermissions[3] == "1" && $childPermissions[2] == "1";
+		return $destinationPermissions[0] == "1" && $parentPermissions[2] == "1" && $childPermissions[2] == "1";
 	}
 
     /**

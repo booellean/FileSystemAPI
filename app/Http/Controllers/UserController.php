@@ -11,10 +11,12 @@ use App\Http\Resources\UserResource;
 
 class UserController extends Controller
 {
+    public function getUser(Request $request) {
+        return $request->user()->id;
+    }
+
     public function getUsers()
     {
-        return response()->json([
-            'users' => UserResource::collection(User::all())
-        ], 200);
+        return response()->json(UserResource::collection(User::all()), 200);
     }
 }

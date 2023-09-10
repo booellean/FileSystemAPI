@@ -47,9 +47,7 @@ class DiskController extends Controller
             if ($userPerms != null) $newNode->user_permissions()->attach($user->id, ['crudx' => $userPerms->pivot->crudx]);
 
             // Alert frontend user that the node is created
-            return response()->json([
-                'message' => ucfirst($newNode->nodeType) . " $newNode->name was successfully created."
-            ], 200);
+            return response()->json(new NodeResource($newNode), 200);
 
         }
 
@@ -106,7 +104,7 @@ class DiskController extends Controller
 	{
         $rootNode = Directory::where('name', '=', '')->first();
 
-        return response()->json(["node" => new NodeResource($rootNode)], 200);
+        return response()->json(new NodeResource($rootNode), 200);
 	}
 
     public function moveNode(Directory $destination, Node $child)

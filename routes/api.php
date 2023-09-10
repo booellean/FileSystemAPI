@@ -25,9 +25,10 @@ use App\Models\File;
 // Gaurded API calls
 Route::group(['middleware' => ['auth:sanctum']], function () {
 
-    Route::get('users', [UserController::class, 'getUsers'])->name('user.get');
+    Route::get('user', [UserController::class, 'getUser'])->name('user.get');
+    Route::get('users', [UserController::class, 'getUsers'])->name('users.get');
 
-    Route::get('groups', [GroupController::class, 'getGroups'])->name('group.get');
+    Route::get('groups', [GroupController::class, 'getGroups'])->name('groups.get');
 
     Route::name('node.')->prefix('node/')->group(function () {
         $controllerInstance = new DiskController();

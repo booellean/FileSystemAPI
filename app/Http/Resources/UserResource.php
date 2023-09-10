@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 use App\Models\User;
+use App\Http\Resources\GroupResource;
 
 class UserResource extends JsonResource
 {
@@ -19,7 +20,7 @@ class UserResource extends JsonResource
 		return [
 			'id' => $this->id,
 			'name' => $this->name,
-			'groups' => $this->groups()->get()->pluck('id')->toArray()
+			'groups' => GroupResource::collection($this->groups()->get())
 		];
 	}
 }
